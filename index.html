@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Premium HTML Position & Asset Editor - 100% standalone, Live Server ready">
+<title>✦ Premium HTML Position & Asset Editor - Fixed Live Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-main:#0b0f19; --bg-panel:#111827; --bg-header:#0f172a; --bg-sidebar:#090d16; --bg-active:#1f2937;
+  --border:#263041; --border-light:rgba(255,255,255,.08);
+  --text-main:#e2e8f0; --text-muted:#94a3b8;
+  --blue:#3b82f6; --blue-hover:#2563eb; --blue-light:rgba(59,130,246,.15);
+  --emerald:#10b981; --amber:#f59e0b; --amber-light:rgba(245,158,11,.15);
+  --rose:#ef4444; --rose-light:rgba(239,68,68,.15); --accent:#6366f1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%} body{background:var(--bg-main);color:var(--text-main);font-family:'Inter',system-ui,sans-serif;height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--bg-main)}::-webkit-scrollbar-thumb{background:#2a3449;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#3a4a68}
+.app{display:grid;grid-template-rows:64px 1fr;height:100vh;height:100dvh}
+header{background:var(--bg-header);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:12px;z-index:10}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-icon{background:linear-gradient(135deg,var(--blue),var(--accent));width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;box-shadow:0 0 18px rgba(99,102,241,.45);flex-shrink:0}
+.logo-text b{font-weight:700;font-size:14px;letter-spacing:-.02em;white-space:nowrap}
+.logo-text span{font-size:11px;color:var(--text-muted);border-left:1px solid var(--border);margin-left:10px;padding-left:10px}
+.live-badge{font-size:10px;background:#102a1c;color:var(--emerald);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:20px;font-weight:700;letter-spacing:.04em;display:none}
+.live-badge.show{display:inline-flex}
+.actions{display:flex;gap:8px;flex-shrink:0}
+button{background:var(--bg-active);color:var(--text-main);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.18s;font-family:Inter,sans-serif;white-space:nowrap}
+button:hover{border-color:#3a4966;background:#263040} button:active{transform:scale(.97)} button.primary{background:var(--blue);color:#fff;border:none;box-shadow:0 4px 14px rgba(59,130,246,.28)} button.primary:hover{background:var(--blue-hover);transform:translateY(-1px)}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.layout{display:grid;grid-template-columns:380px 1fr 360px;overflow:hidden;height:100%;min-height:0}
+.panel{background:var(--bg-panel);display:flex;flex-direction:column;height:100%;min-height:0;border-right:1px solid var(--border);overflow:hidden}
+.panel-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.18);flex-shrink:0}
+.panel-header h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:700}
+.editor-wrapper{flex:1;position:relative;display:flex;background:var(--bg-sidebar);min-height:0;overflow:hidden}
+.line-numbers{width:46px;background:rgba(0,0,0,.25);color:#4b5b74;padding:16px 8px 16px 0;text-align:right;font-family:'Fira Code',monospace;font-size:12.5px;line-height:21px;user-select:none;border-right:1px solid var(--border-light);overflow:hidden;flex-shrink:0}
+.line-numbers div{height:21px} .line-numbers .active-line{color:var(--blue);font-weight:700;background:rgba(59,130,246,.08)}
+textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-family:'Fira Code',monospace;font-size:13px;line-height:21px;padding:16px;resize:none;outline:none;overflow-y:auto;white-space:pre;tab-size:2;min-width:0}
+.editor-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--bg-sidebar);flex-shrink:0}
+.hint{font-size:10px;color:#5a6b87;padding:6px 12px;border-top:1px dashed var(--border);background:var(--bg-sidebar)}
+.hint kbd{background:#1c2536;border:1px solid #2d3a53;border-bottom-width:2px;padding:1px 5px;border-radius:4px;font-family:'Fira Code',monospace;font-size:10px;color:var(--text-muted)}
+.workspace{display:grid;grid-template-rows:48px 1fr auto;background:var(--bg-main);height:100%;min-height:0;overflow:hidden}
+.workspace-bar{display:flex;justify-content:space-between;align-items:center;padding:0 14px;border-bottom:1px solid var(--border);background:var(--bg-panel);font-size:12px;flex-shrink:0;gap:12px}
+.status-badge{display:flex;align-items:center;gap:8px;font-weight:500;min-width:0} .status-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);flex-shrink:0}
+.status-dot.loading{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:pulse 1s infinite alternate}
+@keyframes pulse{0%{opacity:.5}100%{opacity:1}}
+.preview-container{padding:14px;overflow:auto;display:flex;min-height:0;background:radial-gradient(1200px 600px at 50% -20%,rgba(59,130,246,.08),transparent 60%),var(--bg-main)}
+.preview-frame{width:100%;max-width:960px;flex:1;min-height:380px;height:100%;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 16px 48px rgba(0,0,0,.45);margin:auto;display:block}
+.console-panel{border-top:1px solid var(--border);background:var(--bg-sidebar);max-height:240px;display:flex;flex-direction:column;flex-shrink:0}
+.console-header{padding:10px 14px;background:var(--bg-panel);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-shrink:0}
+.console-title{font-size:11px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.05em}
+.console-badge{background:#1f2a3e;color:var(--text-main);padding:2px 7px;border-radius:10px;font-size:10px;border:1px solid var(--border)}
+.console-logs{flex:1;overflow-y:auto;padding:10px 12px;font-family:'Fira Code',monospace;font-size:11.5px;display:flex;flex-direction:column;gap:6px;max-height:200px;min-height:0}
+.console-log{padding:6px 10px;border-radius:6px;border-left:3px solid var(--border);background:rgba(255,255,255,.03);white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.console-log.log{border-left-color:var(--blue);color:#93c5fd} .console-log.info{border-left-color:var(--accent);color:#c7d2fe}
+.console-log.warn{border-left-color:var(--amber);color:#fde047;background:var(--amber-light)} .console-log.error{border-left-color:var(--rose);color:#fca5a5;background:var(--rose-light)}
+.right-panel{border-left:1px solid var(--border);border-right:none;background:var(--bg-panel)}
+.tabs{display:flex;background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab-btn{flex:1;background:transparent;border:none;border-bottom:2px solid transparent;padding:12px 0;text-align:center;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-radius:0;cursor:pointer}
+.tab-btn.active{border-bottom-color:var(--blue);color:var(--blue);background:var(--bg-panel)}
+.inspector-content{flex:1;overflow-y:auto;padding:14px;min-height:0}
+.section-title{font-size:10.5px;font-weight:800;color:var(--text-muted);text-transform:uppercase;margin-top:18px;margin-bottom:9px;letter-spacing:.07em}
+.section-title:first-child{margin-top:0}
+.info-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px}
+.info-card label{display:block;font-size:9.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px;letter-spacing:.05em}
+.info-card p{font-size:13px;font-weight:600;word-break:break-all} .info-card code{font-family:'Fira Code',monospace;font-size:11.5px;color:var(--accent);word-break:break-all}
+.interactive-code{font-family:'Fira Code',monospace;font-size:11px;line-height:1.5;background:#0a0e19;border:1px solid var(--border);border-radius:10px;padding:11px;overflow-x:auto;color:#93c5fd;white-space:pre-wrap;word-break:break-all}
+.css-rule-item{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:9px}
+.css-selector{font-family:'Fira Code',monospace;font-size:11.5px;color:var(--amber);margin-bottom:5px;font-weight:600;word-break:break-all}
+.css-origin{font-size:9px;color:var(--text-muted);float:right;background:#182036;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
+.css-declarations{font-family:'Fira Code',monospace;font-size:11px;color:#a7f3d0;white-space:pre-wrap;word-break:break-word}
+.empty-state{text-align:center;padding:32px 12px;color:var(--text-muted);font-size:13px;line-height:1.5} .empty-state svg{margin-bottom:10px;color:#2a3447}
+.toast{position:fixed;bottom:18px;right:18px;background:#141c2b;border:1px solid #2a3a5a;color:var(--text-main);padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.6);transform:translateY(120px);opacity:0;transition:all .32s cubic-bezier(.16,1,.3,1);z-index:1000;pointer-events:none;max-width:360px}
+.toast.show{transform:translateY(0);opacity:1}
+.btn-locate{background:var(--blue-light);color:#60a5fa;border:1px solid rgba(59,130,246,.28);margin-top:8px;width:100%;justify-content:center}
+.btn-locate:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.js-event-item{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px}
+.js-event-name{font-family:'Fira Code',monospace;font-size:11px;color:var(--rose);font-weight:700}
+.js-event-handler{font-family:'Fira Code',monospace;font-size:11px;color:var(--text-main);margin-top:6px;background:rgba(0,0,0,.28);padding:6px 8px;border-radius:6px;border:1px solid var(--border);word-break:break-all}
+.js-script-item{border-bottom:1px dashed var(--border);padding:9px 0} .js-script-item:last-child{border-bottom:none}
+.js-script-title{font-size:11px;font-weight:600;color:var(--blue)}
+.js-script-preview{font-family:'Fira Code',monospace;font-size:10px;color:var(--text-muted);margin-top:6px;background:#090d16;padding:7px;border-radius:6px;white-space:pre;overflow:hidden;text-overflow:ellipsis;border:1px solid var(--border)}
+@media(max-width:1180px){.layout{grid-template-columns:320px 1fr 300px}}
+@media(max-width:900px){
+  header{flex-wrap:wrap;height:auto;min-height:64px;padding:10px 12px} .logo-text b{font-size:13px} .logo-text span{display:none}
+  .layout{grid-template-columns:1fr;grid-template-rows:42vh 54vh auto;overflow:auto;height:auto} .app{height:auto;min-height:100dvh;overflow:auto}
+  body{overflow:auto;height:auto} .panel,.workspace{height:auto;min-height:280px;overflow:visible} .editor-wrapper{min-height:220px}
+  .preview-container{min-height:320px;padding:10px} .preview-frame{min-height:420px} .workspace{min-height:520px} .console-panel{max-height:220px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <div class="logo-text"><b>HTML Position & Assets Editor</b><span>Live Server Ready • Fixed</span></div>
+      <span class="live-badge" id="live-badge">● LIVE SERVER</span>
+    </div>
+    <div class="actions">
+      <button id="btn-sample" title="Load demo">Load Sample</button>
+      <button id="btn-clear" title="Clear editor">Clear</button>
+      <button class="primary" id="btn-render" title="Ctrl+Enter">Render & Preview</button>
+    </div>
+  </header>
+  <main class="layout">
+    <aside class="panel">
+      <div class="panel-header"><h3>Source Code (index.html)</h3><span style="font-size:10px;color:var(--text-muted)">Live Server OK</span></div>
+      <div class="editor-wrapper">
+        <div class="line-numbers" id="line-numbers"><div>1</div></div>
+        <textarea id="source" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Paste your index.html here...&#10;Go Live di VS Code → 100% standalone."></textarea>
+      </div>
+      <div class="editor-footer"><button class="primary" id="btn-render2" style="flex:1;justify-content:center;">Render Live Preview — Ctrl+↵</button></div>
+      <div class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> render • <kbd>Esc</kbd> clear selection • Auto-save localStorage • No freeze</div>
+    </aside>
+    <section class="workspace">
+      <div class="workspace-bar"><div class="status-badge"><div class="status-dot" id="status-dot"></div><span id="status">Ready</span></div><span id="count" style="color:var(--text-muted)">0 interactive elements</span></div>
+      <div class="preview-container"><iframe class="preview-frame" id="frame" title="Live Preview" sandbox="allow-same-origin allow-scripts allow-forms allow-modals" loading="eager"></iframe></div>
+      <div class="console-panel" id="console-panel">
+        <div class="console-header" id="console-toggle"><div class="console-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg> Console Output <span class="console-badge" id="console-count">0</span></div><button id="btn-console-clear" style="padding:3px 9px;font-size:10px;">Clear</button></div>
+        <div class="console-logs" id="console-logs"><div style="color:var(--text-muted);font-style:italic;">Console kosong. Log dari iframe akan tampil di sini.</div></div>
+      </div>
+    </section>
+    <aside class="panel right-panel">
+      <div class="tabs"><button class="tab-btn active" data-tab="inspector">Element</button><button class="tab-btn" data-tab="css">CSS Rules</button><button class="tab-btn" data-tab="js">JS & Events</button></div>
+      <div class="inspector-content" id="inspector-tab">
+        <div id="no-selection" class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><p>No element selected</p><span style="font-size:11px;display:block;margin-top:8px;opacity:.8">Render lalu klik elemen di Preview untuk inspect.</span></div>
+        <div id="inspector-details" style="display:none;">
+          <h4 class="section-title">Selection</h4>
+          <div class="info-card"><label>Tag Name</label><p id="el-tag">-</p></div>
+          <div class="info-card"><label>CSS Selector</label><code id="el-selector">-</code></div>
+          <div class="info-card"><label>Source Position</label><p id="el-position">Line -</p><button class="btn-locate" id="btn-locate">Locate & Highlight in Editor</button></div>
+          <h4 class="section-title">Outer HTML</h4><pre class="interactive-code" id="el-html">-</pre>
+        </div>
+      </div>
+      <div class="inspector-content" id="css-tab" style="display:none;"><div id="css-no-selection" class="empty-state">Pilih elemen untuk lihat CSS rules.</div><div id="css-rules-container" style="display:none;"><h4 class="section-title">Inline Styles</h4><div class="css-rule-item"><div class="css-selector">element.style</div><div class="css-declarations" id="inline-css-text">/* No inline */</div></div><h4 class="section-title">Matched Rules</h4><div id="matched-rules-list"></div></div></div>
+      <div class="inspector-content" id="js-tab" style="display:none;"><div id="js-no-selection" class="empty-state">Pilih elemen untuk inspect JS.</div><div id="js-container" style="display:none;"><h4 class="section-title">Element Events</h4><div id="element-events-list"></div><h4 class="section-title">Scripts in Page</h4><div id="page-scripts-list" style="margin-top:10px;"></div></div></div>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* Fixed version - Live Server 100% compatible, no freeze */
+(function(){
+  'use strict';
+  // Live Server badge
+  try{
+    var isHttp = location.protocol.indexOf('http')===0;
+    var badge = document.getElementById('live-badge');
+    if(badge){
+      if(isHttp){
+        badge.classList.add('show');
+        badge.textContent = '● ' + location.host + ' LIVE';
+      }else if(location.protocol==='file:'){
+        badge.classList.add('show');
+        badge.style.background='#1e293b'; badge.style.color='#94a3b8';
+        badge.textContent='FILE MODE - WORKING';
+      }
+    }
+  }catch(e){}
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var source = document.getElementById('source');
+    var frame = document.getElementById('frame');
+    var toastEl = document.getElementById('toast');
+    var lineNumbers = document.getElementById('line-numbers');
+    var consoleLogs = document.getElementById('console-logs');
+    var consoleCount = document.getElementById('console-count');
+    var statusDot = document.getElementById('status-dot');
+    var statusText = document.getElementById('status');
+    var countEl = document.getElementById('count');
+    if(!source || !frame){ return; }
+
+    var STORAGE_KEY = 'premium-html-editor-v3-fixed';
+    var parsedCode = '';
+    var selectedLine = '?';
+    var consoleMessages = [];
+    var saveDebounce = null;
+    var currentActiveLine = 1; // defined BEFORE use - fix TDZ
+
+    function toast(msg){
+      if(!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastEl._t);
+      toastEl._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 2500);
+    }
+    function esc(v){
+      return String(v).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,'&#039;');
+    }
+    function updateLineNumbers(){
+      try{
+        var text = source.value || '';
+        var lines = text.split('\n').length || 1;
+        var out = '';
+        for(var i=1;i<=lines;i++){
+          var cls = (i===currentActiveLine) ? ' class="active-line"' : '';
+          out += '<div'+cls+'>'+i+'</div>';
+        }
+        lineNumbers.innerHTML = out;
+      }catch(e){}
+    }
+
+    // sample code - using \x3C for safe parsing
+    var sampleCode = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>Interactive Demo - Fixed<\/title>\n<style>\n  body{font-family:system-ui,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;margin:0;padding:20px}\n  .card{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px;width:380px;max-width:90vw;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.4);transition:.3s}\n  .card:hover{transform:translateY(-6px);border-color:#3b82f6;box-shadow:0 25px 50px rgba(59,130,246,.18)}\n  h1{font-size:24px;margin-bottom:10px;color:#60a5fa}\n  p{color:#94a3b8;font-size:13px;line-height:1.6;margin-bottom:22px}\n  .btn-action{background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:13px;box-shadow:0 4px 12px rgba(59,130,246,.32)}\n  .btn-action:hover{background:#2563eb;transform:scale(1.02)}\n  .counter{margin-top:16px;font-size:20px;font-weight:700;color:#10b981}\n<\/style>\n<\/head>\n<body>\n  <div class="card" id="demo-card">\n    <h1>Fixed Demo OK<\/h1>\n    <p>Klik tombol, buka console, klik elemen card untuk inspect CSS & JS. Ini sudah fix freeze & Live Server ready.<\/p>\n    <button class="btn-action" onclick="incrementCounter()">Click to Log<\/button>\n    <div class="counter" id="counter-value">0 clicks<\/div>\n  <\/div>\n  <script>\n    var clicks=0;\n    console.log("Console init - Fixed version works! Live Server OK");\n    function incrementCounter(){\n      clicks++;\n      document.getElementById("counter-value").innerText = clicks + " clicks";\n      console.log("Clicked! count=" + clicks);\n      if(clicks===3) console.warn("Warn: 3 clicks");\n      if(clicks===5) console.error("Error demo at 5 clicks");\n    }\n  <\/script>\n<\/body>\n<\/html>';
+
+    // console capture - built with \x3C to avoid outer parser breaking - FIXED no freeze
+    var consoleCaptureScript = '\x3Cscript>(function(){var l=console.log,w=console.warn,e=console.error,i=console.info;function s(t,a){try{window.parent.postMessage({type:"iframe-console",method:t,arguments:Array.from(a).map(function(x){if(x===null)return"null";if(x===void 0)return"undefined";if(x instanceof Error)return x.name+": "+x.message+"\\n"+x.stack;try{if(typeof x==="object")return JSON.stringify(x,null,2);}catch(e){}return String(x);})},"*");}catch(e){}}console.log=function(){s("log",arguments);l.apply(console,arguments);};console.warn=function(){s("warn",arguments);w.apply(console,arguments);};console.error=function(){s("error",arguments);e.apply(console,arguments);};console.info=function(){s("info",arguments);i.apply(console,arguments);};window.onerror=function(m,src,ln,col,err){s("error",[m+" (line "+ln+":"+col+")"]);return false;};window.addEventListener("unhandledrejection",function(ev){s("error",["Unhandled: "+(ev.reason&&ev.reason.message?ev.reason.message:ev.reason)]);});})();\x3C/script>\x3Cstyle>.editable-element-highlight{outline:2px dashed rgba(59,130,246,.65)!important;outline-offset:2px!important;cursor:pointer!important}.editable-element-highlight:hover{outline:2px solid #3b82f6!important;background:rgba(59,130,246,.06)!important}.editable-element-selected{outline:2px solid #3b82f6!important;outline-offset:2px!important;background:rgba(59,130,246,.12)!important}\x3C/style>';
+
+    function instrumentHTML(html){
+      try{
+        var htmlLower = html.toLowerCase();
+        var out = '';
+        var idx = 0;
+        var line = 1;
+        var len = html.length;
+        while(idx < len){
+          var lt = html.indexOf('<', idx);
+          if(lt === -1){ out += html.slice(idx); break; }
+          var textSeg = html.slice(idx, lt);
+          var nl = textSeg.match(/\n/g);
+          if(nl) line += nl.length;
+          out += textSeg;
+          if(html.startsWith('<!--', lt)){
+            var endC = html.indexOf('-->', lt+4);
+            if(endC===-1){ out += html.slice(lt); break; }
+            var comm = html.slice(lt, endC+3);
+            var nl2 = comm.match(/\n/g); if(nl2) line += nl2.length;
+            out += comm; idx = endC+3; continue;
+          }
+          var gt = html.indexOf('>', lt);
+          if(gt===-1){ out += html.slice(lt); break; }
+          var tagSeg = html.slice(lt, gt+1);
+          var m = tagSeg.match(/^<\/?([a-zA-Z0-9-]+)/);
+          if(m){
+            var isClose = tagSeg.charAt(1)==='/';
+            var tName = m[1].toUpperCase();
+            if(!isClose && (tName==='SCRIPT' || tName==='STYLE')){
+              out += tagSeg;
+              var nl3 = tagSeg.match(/\n/g); if(nl3) line += nl3.length;
+              idx = gt+1;
+              var closeTag = '</'+tName.toLowerCase()+'>';
+              var closePos = htmlLower.indexOf(closeTag, idx);
+              if(closePos!==-1){
+                var block = html.slice(idx, closePos);
+                var nl4 = block.match(/\n/g); if(nl4) line += nl4.length;
+                out += block;
+                idx = closePos;
+              }
+              continue;
+            }
+            var excluded = ['HTML','HEAD','BODY','META','LINK','TITLE','!DOCTYPE'];
+            if(!isClose && excluded.indexOf(tName)===-1){
+              var nameLen = m[0].length;
+              var insertAt = lt + nameLen;
+              var ch = html.charAt(insertAt);
+              var needSp = (/\s|\/|>/).test(ch) ? '' : ' ';
+              var newTag = html.slice(lt, insertAt) + ' data-editor-line="'+line+'"'+needSp + html.slice(insertAt, gt+1);
+              out += newTag;
+            }else{
+              out += tagSeg;
+            }
+          }else{
+            out += tagSeg;
+          }
+          var nl5 = tagSeg.match(/\n/g); if(nl5) line += nl5.length;
+          idx = gt+1;
+        }
+        return out;
+      }catch(err){
+        console.error('instrument error', err);
+        return html;
+      }
+    }
+
+    function doRender(){
+      var code = source.value;
+      parsedCode = code;
+      if(!code.trim()){
+        try{
+          frame.srcdoc = '<div style="font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;color:#64748b;background:#f8fafc;text-align:center;padding:24px"><div><div style="font-size:28px">📝<\/div><div style="font-weight:700;color:#0f172a;margin-top:8px">Empty<\/div><div>Paste HTML lalu Render<\/div><\/div><\/div>';
+        }catch(e){}
+        if(countEl) countEl.textContent='0 interactive elements';
+        statusDot.className='status-dot';
+        statusText.textContent='Ready';
+        return;
+      }
+      statusDot.className='status-dot loading';
+      statusText.textContent='Rendering...';
+      // reset inspector
+      var noSel = document.getElementById('no-selection');
+      var det = document.getElementById('inspector-details');
+      var cssNo = document.getElementById('css-no-selection');
+      var cssCont = document.getElementById('css-rules-container');
+      var jsNo = document.getElementById('js-no-selection');
+      var jsCont = document.getElementById('js-container');
+      if(noSel) noSel.style.display='block';
+      if(det) det.style.display='none';
+      if(cssNo) cssNo.style.display='block';
+      if(cssCont) cssCont.style.display='none';
+      if(jsNo) jsNo.style.display='block';
+      if(jsCont) jsCont.style.display='none';
+
+      var finalHTML = instrumentHTML(code);
+      // inject capture robustly
+      try{
+        if(/<\/head>/i.test(finalHTML)){
+          finalHTML = finalHTML.replace(/<\/head>/i, consoleCaptureScript + '</head>');
+        }else if(/<body[^>]*>/i.test(finalHTML)){
+          finalHTML = finalHTML.replace(/<body[^>]*>/i, function(m){ return m + consoleCaptureScript; });
+        }else{
+          finalHTML = consoleCaptureScript + finalHTML;
+        }
+      }catch(e){ finalHTML = consoleCaptureScript + finalHTML; }
+
+      var rendered = false;
+      function finish(){
+        if(rendered) return;
+        rendered = true;
+        try{
+          var doc = frame.contentDocument || frame.contentWindow.document;
+          if(!doc || !doc.body){ throw new Error('No body'); }
+          var els = doc.querySelectorAll('body *');
+          var cnt = 0;
+          els.forEach(function(el){
+            var tg = el.tagName;
+            if(['SCRIPT','STYLE','NOSCRIPT'].indexOf(tg)===-1){
+              el.classList.add('editable-element-highlight');
+              el.addEventListener('click', function(ev){
+                ev.preventDefault(); ev.stopPropagation();
+                inspectElement(el);
+              });
+              cnt++;
+            }
+          });
+          if(countEl) countEl.textContent = cnt + ' interactive element' + (cnt!==1?'s':'');
+          statusDot.className='status-dot';
+          statusText.textContent='Live Preview Ready';
+          toast('Preview: '+cnt+' elemen');
+        }catch(err){
+          statusDot.className='status-dot';
+          statusText.textContent='Preview error';
+          addConsoleMessage('error', ['Preview Error: '+err.message]);
+          if(countEl) countEl.textContent='0 interactive elements';
+        }
+      }
+
+      // ensure onload set BEFORE srcdoc
+      frame.onload = function(){ setTimeout(finish, 80); };
+      // fallback timer
+      setTimeout(function(){ try{ if(frame.contentDocument && frame.contentDocument.body) finish(); }catch(e){} }, 600);
+      try{ frame.srcdoc = finalHTML; }catch(err){ toast('Render error: '+err.message); statusDot.className='status-dot'; statusText.textContent='Error'; }
+    }
+
+    function inspectElement(element){
+      try{
+        var doc = frame.contentDocument || frame.contentWindow.document;
+        doc.querySelectorAll('.editable-element-selected').forEach(function(el){ el.classList.remove('editable-element-selected'); });
+        element.classList.add('editable-element-selected');
+        selectedLine = element.getAttribute('data-editor-line') || '?';
+        var tag = element.tagName.toLowerCase();
+        var selector = tag;
+        if(element.id) selector += '#' + element.id;
+        else{
+          var classes = Array.from(element.classList).filter(function(c){ return c!=='editable-element-highlight' && c!=='editable-element-selected'; });
+          if(classes.length) selector += '.' + classes.join('.');
+        }
+        var elTag = document.getElementById('el-tag');
+        var elSel = document.getElementById('el-selector');
+        var elPos = document.getElementById('el-position');
+        var elHtml = document.getElementById('el-html');
+        if(elTag) elTag.textContent = '<'+tag+'>';
+        if(elSel) elSel.textContent = selector;
+        if(elPos) elPos.textContent = 'Line '+selectedLine;
+        var cleaned = element.outerHTML
+          .replace(/\s*data-editor-line="[^"]*"/g,'')
+          .replace(/\s*class="[^"]*(editable-element-highlight|editable-element-selected)[^"]*"/g,function(m){
+            var mm = m.match(/class="([^"]*)"/);
+            if(!mm) return '';
+            var remain = mm[1].split(' ').filter(function(c){ return c && ['editable-element-highlight','editable-element-selected'].indexOf(c)===-1; }).join(' ');
+            return remain ? ' class="'+remain+'"' : '';
+          });
+        if(elHtml) elHtml.textContent = cleaned.slice(0,2400) + (cleaned.length>2400? '\n... truncated':'');
+        var noSel = document.getElementById('no-selection');
+        var det = document.getElementById('inspector-details');
+        if(noSel) noSel.style.display='none';
+        if(det) det.style.display='block';
+        // css
+        var cssNo = document.getElementById('css-no-selection');
+        var cssCont = document.getElementById('css-rules-container');
+        if(cssNo) cssNo.style.display='none';
+        if(cssCont) cssCont.style.display='block';
+        var inlineStyle = element.getAttribute('style');
+        var inlineBox = document.getElementById('inline-css-text');
+        if(inlineBox){
+          if(inlineStyle){
+            var fmt = inlineStyle.split(';').map(function(s){return s.trim();}).filter(Boolean).join(';\n  ');
+            inlineBox.textContent = '  '+fmt+';';
+          }else inlineBox.textContent='/* No inline styles */';
+        }
+        var matched = getMatchingRules(element);
+        var list = document.getElementById('matched-rules-list');
+        if(list){
+          list.innerHTML='';
+          if(matched.length===0) list.innerHTML='<div style="color:var(--text-muted);font-size:12px;font-style:italic;padding:6px 0">No matched rules.<\/div>';
+          else matched.forEach(function(r){
+            var d=document.createElement('div'); d.className='css-rule-item';
+            d.innerHTML='<span class="css-origin">'+esc(r.origin)+'<\/span><div class="css-selector">'+esc(r.selector)+' {<\/div><div class="css-declarations">'+esc(r.rules)+'<\/div><div class="css-selector">}<\/div>';
+            list.appendChild(d);
+          });
+        }
+        // js
+        var jsNo = document.getElementById('js-no-selection');
+        var jsCont = document.getElementById('js-container');
+        if(jsNo) jsNo.style.display='none';
+        if(jsCont) jsCont.style.display='block';
+        var evList = document.getElementById('element-events-list');
+        if(evList){
+          evList.innerHTML='';
+          var inlineEvs = getInlineEvents(element);
+          if(inlineEvs.length===0) evList.innerHTML='<div style="color:var(--text-muted);font-size:12px;font-style:italic">No inline JS events.<\/div>';
+          else inlineEvs.forEach(function(ev){
+            var d=document.createElement('div'); d.className='js-event-item';
+            d.innerHTML='<div class="js-event-name">'+esc(ev.name)+'<\/div><div class="js-event-handler">'+esc(ev.value)+'<\/div>';
+            evList.appendChild(d);
+          });
+        }
+        var scrList = document.getElementById('page-scripts-list');
+        if(scrList){
+          scrList.innerHTML='';
+          var tags = doc.querySelectorAll('script');
+          var found=0;
+          tags.forEach(function(s){
+            if(s.textContent.indexOf('iframe-console')!==-1) return;
+            found++;
+            var d=document.createElement('div'); d.className='js-script-item';
+            var src = s.getAttribute('src') || 'Inline Script';
+            var prev = s.textContent.trim().slice(0,160);
+            if(s.textContent.trim().length>160) prev+='...';
+            d.innerHTML='<div class="js-script-title">#'+found+' • '+esc(src)+'<\/div>'+ (prev? '<pre class="js-script-preview">'+esc(prev)+'<\/pre>':'');
+            scrList.appendChild(d);
+          });
+          if(found===0) scrList.innerHTML='<div style="color:var(--text-muted);font-size:12px;font-style:italic">No script tags.<\/div>';
+        }
+      }catch(err){ toast('Inspect error: '+err.message); }
+    }
+    function getMatchingRules(element){
+      var matched=[];
+      try{
+        var doc = element.ownerDocument;
+        var sheets = doc.styleSheets;
+        if(!sheets) return matched;
+        for(var i=0;i<sheets.length;i++){
+          try{
+            var rules = sheets[i].cssRules || sheets[i].rules;
+            if(!rules) continue;
+            for(var j=0;j<rules.length;j++){
+              var rule = rules[j];
+              if(rule.type===1){
+                if(!rule.selectorText) continue;
+                if(rule.selectorText.indexOf('editable-element')!==-1) continue;
+                try{
+                  if(element.matches(rule.selectorText)){
+                    var txt = rule.style.cssText.split(';').map(function(s){return s.trim();}).filter(Boolean).join(';\n  ');
+                    matched.push({selector:rule.selectorText,rules: txt? '  '+txt+';':'',origin: sheets[i].href ? sheets[i].href.split('/').pop().split('?')[0] : 'Internal <style>'});
+                  }
+                }catch(e){}
+              }
+            }
+          }catch(e){}
+        }
+      }catch(e){}
+      return matched;
+    }
+    function getInlineEvents(element){
+      var handlers=[];
+      var evts=['onclick','onchange','onsubmit','onmouseover','onmouseout','onmouseenter','onmouseleave','onkeydown','onkeyup','onkeypress','onload','onfocus','onblur','ondblclick','oninput'];
+      evts.forEach(function(ev){ if(element.hasAttribute(ev)) handlers.push({name:ev,value:element.getAttribute(ev)}); });
+      return handlers;
+    }
+    function locateLine(lineNum){
+      if(lineNum==='?' || !lineNum) return;
+      var num = parseInt(lineNum,10);
+      if(isNaN(num)) return;
+      var text = source.value;
+      var lines = text.split('\n');
+      if(num<1 || num>lines.length) return;
+      var start=0;
+      for(var i=0;i<num-1;i++) start+= lines[i].length +1;
+      var end = start + (lines[num-1]? lines[num-1].length:0);
+      source.focus();
+      try{ source.setSelectionRange(start,end); }catch(e){}
+      var lh=21;
+      var to = (num-1)*lh - (source.clientHeight/2) +10;
+      try{ source.scrollTo({top:Math.max(0,to),behavior:'smooth'}); }catch(e){ source.scrollTop = Math.max(0,to); }
+      currentActiveLine = num;
+      updateLineNumbers();
+      // scroll line numbers
+      try{ lineNumbers.scrollTop = Math.max(0,(num-8)*21); }catch(e){}
+    }
+    function addConsoleMessage(method, args){
+      try{
+        if(consoleMessages.length===0 && consoleLogs) consoleLogs.innerHTML='';
+        var text = args.join(' ');
+        consoleMessages.push({method:method,text:text});
+        if(consoleCount) consoleCount.textContent = consoleMessages.length;
+        if(!consoleLogs) return;
+        var div=document.createElement('div');
+        div.className='console-log '+method;
+        var now=new Date();
+        var tm='['+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0')+']';
+        div.innerHTML='<span style="color:var(--text-muted);font-size:10px;margin-right:8px;opacity:.8">'+esc(tm)+'<\/span>'+esc(text);
+        consoleLogs.appendChild(div);
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      }catch(e){}
+    }
+
+    // events
+    var btnRender = document.getElementById('btn-render');
+    var btnRender2 = document.getElementById('btn-render2');
+    var btnSample = document.getElementById('btn-sample');
+    var btnClear = document.getElementById('btn-clear');
+    var btnLocate = document.getElementById('btn-locate');
+    var btnConsoleClear = document.getElementById('btn-console-clear');
+    var consoleToggle = document.getElementById('console-toggle');
+
+    if(btnRender) btnRender.addEventListener('click', doRender);
+    if(btnRender2) btnRender2.addEventListener('click', doRender);
+    if(btnLocate) btnLocate.addEventListener('click', function(){ locateLine(selectedLine); toast('Baris '+selectedLine+' diseleksi'); });
+    if(btnConsoleClear) btnConsoleClear.addEventListener('click', function(e){
+      e.stopPropagation();
+      consoleMessages=[]; if(consoleCount) consoleCount.textContent='0';
+      if(consoleLogs) consoleLogs.innerHTML='<div style="color:var(--text-muted);font-style:italic">Console kosong.<\/div>';
+      toast('Console dibersihkan');
+    });
+    if(consoleToggle) consoleToggle.addEventListener('click', function(){
+      var logs = document.getElementById('console-logs');
+      if(!logs) return;
+      logs.style.display = (logs.style.display==='none') ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(b){
+      b.addEventListener('click', function(){
+        document.querySelectorAll('.tab-btn').forEach(function(x){ x.classList.remove('active'); });
+        document.querySelectorAll('.inspector-content').forEach(function(c){ c.style.display='none'; });
+        b.classList.add('active');
+        var id = b.getAttribute('data-tab') + '-tab';
+        var el = document.getElementById(id);
+        if(el) el.style.display='block';
+      });
+    });
+    source.addEventListener('input', function(){
+      updateLineNumbers();
+      clearTimeout(saveDebounce);
+      saveDebounce = setTimeout(function(){ try{ localStorage.setItem(STORAGE_KEY, source.value); }catch(e){} }, 400);
+    });
+    source.addEventListener('scroll', function(){ lineNumbers.scrollTop = source.scrollTop; });
+    source.addEventListener('keyup', function(e){
+      var pos = source.selectionStart;
+      var line = (source.value.slice(0,pos).match(/\n/g) || []).length + 1;
+      if(currentActiveLine !== line){ currentActiveLine = line; updateLineNumbers(); }
+    });
+    source.addEventListener('keydown', function(e){
+      if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); doRender(); }
+      if(e.key === 'Tab'){
+        e.preventDefault();
+        var s = source.selectionStart, en = source.selectionEnd;
+        source.value = source.value.substring(0,s) + '  ' + source.value.substring(en);
+        source.selectionStart = source.selectionEnd = s+2;
+        updateLineNumbers();
+      }
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key==='Escape'){
+        try{
+          var doc = frame.contentDocument;
+          if(doc) doc.querySelectorAll('.editable-element-selected').forEach(function(el){ el.classList.remove('editable-element-selected'); });
+          var noSel = document.getElementById('no-selection');
+          var det = document.getElementById('inspector-details');
+          if(noSel) noSel.style.display='block';
+          if(det) det.style.display='none';
+        }catch(err){}
+      }
+    });
+    window.addEventListener('message', function(ev){
+      if(ev.data && ev.data.type === 'iframe-console'){ addConsoleMessage(ev.data.method, ev.data.arguments); }
+    });
+
+    if(btnSample) btnSample.addEventListener('click', function(){
+      try{
+        source.value = sampleCode;
+        currentActiveLine = 1;
+        updateLineNumbers();
+        try{ localStorage.setItem(STORAGE_KEY, source.value); }catch(e){}
+        setTimeout(doRender, 50);
+        toast('Sample dimuat - fixed, no freeze');
+      }catch(err){ toast('Sample error: '+err.message); }
+    });
+    if(btnClear) btnClear.addEventListener('click', function(){
+      source.value=''; updateLineNumbers();
+      try{ frame.removeAttribute('srcdoc'); }catch(e){}
+      try{ frame.srcdoc = '<div style="font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;color:#64748b;background:#f8fafc">Cleared. Paste HTML & Render.<\/div>'; }catch(e){}
+      if(countEl) countEl.textContent='0 interactive elements';
+      var noSel=document.getElementById('no-selection'); var det=document.getElementById('inspector-details');
+      var cssNo=document.getElementById('css-no-selection'); var cssCont=document.getElementById('css-rules-container');
+      var jsNo=document.getElementById('js-no-selection'); var jsCont=document.getElementById('js-container');
+      if(noSel) noSel.style.display='block'; if(det) det.style.display='none';
+      if(cssNo) cssNo.style.display='block'; if(cssCont) cssCont.style.display='none';
+      if(jsNo) jsNo.style.display='block'; if(jsCont) jsCont.style.display='none';
+      consoleMessages=[]; if(consoleCount) consoleCount.textContent='0';
+      if(consoleLogs) consoleLogs.innerHTML='<div style="color:var(--text-muted);font-style:italic">Console kosong.<\/div>';
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+      toast('Workspace cleared');
+    });
+
+    // init
+    try{
+      var saved = null;
+      try{ saved = localStorage.getItem(STORAGE_KEY); }catch(e){}
+      if(saved && saved.trim().length>20) source.value = saved;
+      else source.value = sampleCode;
+    }catch(e){ source.value = sampleCode; }
+    updateLineNumbers();
+    setTimeout(function(){ doRender(); }, 250);
+    toast('Editor siap ✓ Live Server compatible - no freeze');
+  });
+})();
+</script>
+</body>
+</html>
