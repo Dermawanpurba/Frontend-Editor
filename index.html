@@ -53,16 +53,55 @@ button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
   pointer-events: auto;
   transition: opacity 0.2s, visibility 0.2s;
 }
+/* Fullscreen Maximized Layout Overrides (Unbroken Flexbox Chain) */
+body.layout-maximized-body {
+  overflow: hidden !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.app.layout-maximized {
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
 .app.preview-fullscreen {
-  grid-template-rows: 0px 1fr !important;
-}
-.app.preview-fullscreen header {
-  display: none !important;
-}
-.layout.preview-max .workspace {
   display: flex !important;
   flex-direction: column !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+.app.preview-fullscreen > header {
+  display: none !important;
+}
+.app.preview-fullscreen > .layout,
+.layout.preview-max,
+.layout.editor-max {
+  flex: 1 !important;
+  display: flex !important;
+  width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.layout.preview-max > aside.panel,
+.layout.preview-max > aside.right-panel,
+.layout.editor-max > section.workspace,
+.layout.editor-max > aside.right-panel {
+  display: none !important;
+}
+
+.layout.preview-max > section.workspace {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 .layout.preview-max .workspace-bar,
 .layout.preview-max .console-panel {
@@ -70,16 +109,36 @@ button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 }
 .layout.preview-max .preview-container {
   flex: 1 !important;
+  display: flex !important;
+  width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
   padding: 0 !important;
-  background: var(--bg-main) !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
 }
 .layout.preview-max .preview-frame {
+  flex: 1 !important;
+  display: block !important;
   width: 100% !important;
   max-width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
   border-radius: 0 !important;
   border: none !important;
+  background: #ffffff !important;
+}
+.layout.editor-max .panel {
+  flex: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+.layout.editor-max .editor-wrapper {
+  flex: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
 }
 .panel{background:var(--bg-panel);display:flex;flex-direction:column;height:100%;min-height:0;border-right:1px solid var(--border);overflow:hidden}
 .panel-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.18);flex-shrink:0}
@@ -1043,7 +1102,11 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
       function restoreLayout() {
         layout.classList.remove('editor-max');
         layout.classList.remove('preview-max');
-        if (app) app.classList.remove('preview-fullscreen');
+        if (app) {
+          app.classList.remove('preview-fullscreen');
+          app.classList.remove('layout-maximized');
+        }
+        document.body.classList.remove('layout-maximized-body');
         if (btnRestoreFloating) btnRestoreFloating.style.display = 'none';
         updateButtons('split');
         setIframeInteractiveMode(false);
@@ -1051,7 +1114,11 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
 
       function maximizeEditor() {
         layout.classList.remove('preview-max');
-        if (app) app.classList.remove('preview-fullscreen');
+        if (app) {
+          app.classList.remove('preview-fullscreen');
+          app.classList.add('layout-maximized');
+        }
+        document.body.classList.add('layout-maximized-body');
         if (btnRestoreFloating) btnRestoreFloating.style.display = 'none';
         layout.classList.add('editor-max');
         updateButtons('editor-max');
@@ -1059,9 +1126,16 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
       }
 
       function maximizePreview() {
+        if (typeof source !== 'undefined' && source.value && source.value.trim().length > 0) {
+          doRender();
+        }
         layout.classList.remove('editor-max');
         layout.classList.add('preview-max');
-        if (app) app.classList.add('preview-fullscreen');
+        if (app) {
+          app.classList.add('preview-fullscreen');
+          app.classList.add('layout-maximized');
+        }
+        document.body.classList.add('layout-maximized-body');
         if (btnRestoreFloating) btnRestoreFloating.style.display = 'inline-flex';
         updateButtons('preview-max');
         setIframeInteractiveMode(true);
