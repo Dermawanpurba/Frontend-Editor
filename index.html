@@ -33,7 +33,54 @@ header{background:var(--bg-header);border-bottom:1px solid var(--border);display
 button{background:var(--bg-active);color:var(--text-main);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.18s;font-family:Inter,sans-serif;white-space:nowrap}
 button:hover{border-color:#3a4966;background:#263040} button:active{transform:scale(.97)} button.primary{background:var(--blue);color:#fff;border:none;box-shadow:0 4px 14px rgba(59,130,246,.28)} button.primary:hover{background:var(--blue-hover);transform:translateY(-1px)}
 button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.layout{display:grid;grid-template-columns:380px 1fr 360px;overflow:hidden;height:100%;min-height:0}
+.layout{display:grid;grid-template-columns:380px 1fr 360px;overflow:hidden;height:100%;min-height:0;transition:grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+.layout.editor-max{grid-template-columns:1fr 0px 0px}
+.layout.preview-max{grid-template-columns:0px 1fr 0px}
+.layout.editor-max > section.workspace,
+.layout.editor-max > aside.right-panel,
+.layout.preview-max > aside.panel,
+.layout.preview-max > aside.right-panel {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.layout > aside.panel,
+.layout > section.workspace,
+.layout > aside.right-panel {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.app.preview-fullscreen {
+  grid-template-rows: 0px 1fr !important;
+}
+.app.preview-fullscreen header {
+  display: none !important;
+}
+.layout.preview-max .workspace {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+.layout.preview-max .workspace-bar,
+.layout.preview-max .console-panel {
+  display: none !important;
+}
+.layout.preview-max .preview-container {
+  flex: 1 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  background: var(--bg-main) !important;
+}
+.layout.preview-max .preview-frame {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
 .panel{background:var(--bg-panel);display:flex;flex-direction:column;height:100%;min-height:0;border-right:1px solid var(--border);overflow:hidden}
 .panel-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.18);flex-shrink:0}
 .panel-header h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:700}
@@ -85,6 +132,46 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
 .js-script-item{border-bottom:1px dashed var(--border);padding:9px 0} .js-script-item:last-child{border-bottom:none}
 .js-script-title{font-size:11px;font-weight:600;color:var(--blue)}
 .js-script-preview{font-family:'Fira Code',monospace;font-size:10px;color:var(--text-muted);margin-top:6px;background:#090d16;padding:7px;border-radius:6px;white-space:pre;overflow:hidden;text-overflow:ellipsis;border:1px solid var(--border)}
+.sidebar-color-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-right: 8px;
+  transition: all .2s ease;
+}
+.sidebar-color-control:hover {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.15);
+}
+.theme-presets {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  padding: 0;
+  min-width: 0;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  outline: none;
+}
+.color-dot:hover {
+  transform: scale(1.25);
+  border-color: rgba(255,255,255,.5);
+}
+.color-dot.active {
+  border-color: #fff !important;
+  box-shadow: 0 0 8px rgba(255,255,255,.4);
+  transform: scale(1.1);
+}
 @media(max-width:1180px){.layout{grid-template-columns:320px 1fr 300px}}
 @media(max-width:900px){
   header{flex-wrap:wrap;height:auto;min-height:64px;padding:10px 12px} .logo-text b{font-size:13px} .logo-text span{display:none}
@@ -95,6 +182,10 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
 </style>
 </head>
 <body>
+<button id="btn-restore-floating" class="primary" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.5); padding: 8px 12px; font-size: 12px; background: var(--blue); color: #fff; border: none; border-radius: 20px; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="Press ESC to Restore">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="10" y1="14" x2="3" y2="21"></line></svg>
+  <span>Restore Layout</span>
+</button>
 <div class="app">
   <header>
     <div class="logo">
@@ -103,6 +194,19 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
       <span class="live-badge" id="live-badge">● LIVE SERVER</span>
     </div>
     <div class="actions">
+      <div class="sidebar-color-control">
+        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted)">Sidebar:</span>
+        <div class="theme-presets">
+          <button class="color-dot active" data-color="default" style="background: #111827;" title="Default Dark"></button>
+          <button class="color-dot" data-color="red" style="background: #dc2626;" title="Crimson Red"></button>
+          <button class="color-dot" data-color="indigo" style="background: #6366f1;" title="Indigo Purple"></button>
+          <button class="color-dot" data-color="emerald" style="background: #10b981;" title="Emerald Green"></button>
+          <div style="position: relative; display: flex; align-items: center; width: 14px; height: 14px; cursor: pointer;">
+            <input type="color" id="sidebar-custom-color" value="#111827" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
+            <div id="sidebar-custom-indicator" style="width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(45deg, #ff007f, #00f0ff); border: 1px solid rgba(255,255,255,.2); pointer-events: none;" title="Custom Color"></div>
+          </div>
+        </div>
+      </div>
       <button id="btn-sample" title="Load demo">Load Sample</button>
       <button id="btn-clear" title="Clear editor">Clear</button>
       <button class="primary" id="btn-render" title="Ctrl+Enter">Render & Preview</button>
@@ -110,7 +214,15 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
   </header>
   <main class="layout">
     <aside class="panel">
-      <div class="panel-header"><h3>Source Code (index.html)</h3><span style="font-size:10px;color:var(--text-muted)">Live Server OK</span></div>
+      <div class="panel-header">
+        <h3>Source Code (index.html)</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:10px;color:var(--text-muted)">Live Server OK</span>
+          <button id="btn-maximize-editor" class="panel-header-btn" title="Maximize Editor" style="padding: 4px 6px; font-size: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 4px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; height: 22px; width: 22px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </button>
+        </div>
+      </div>
       <div class="editor-wrapper">
         <div class="line-numbers" id="line-numbers"><div>1</div></div>
         <textarea id="source" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Paste your index.html here...&#10;Go Live di VS Code → 100% standalone."></textarea>
@@ -119,8 +231,15 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
       <div class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> render • <kbd>Esc</kbd> clear selection • Auto-save localStorage • No freeze</div>
     </aside>
     <section class="workspace">
-      <div class="workspace-bar"><div class="status-badge"><div class="status-dot" id="status-dot"></div><span id="status">Ready</span></div><span id="count" style="color:var(--text-muted)">0 interactive elements</span></div>
-      <div class="preview-container"><iframe class="preview-frame" id="frame" title="Live Preview" sandbox="allow-same-origin allow-scripts allow-forms allow-modals" loading="eager"></iframe></div>
+      <div class="workspace-bar">
+        <div class="status-badge"><div class="status-dot" id="status-dot"></div><span id="status">Ready</span></div>
+        <span id="count" style="color:var(--text-muted)">0 interactive elements</span>
+        <button id="btn-maximize-preview" class="panel-header-btn" title="Maximize Preview" style="padding: 4px 8px; font-size: 11px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 4px; color: var(--text-main); margin-left: auto; display: flex; align-items: center; gap: 4px; cursor: pointer; height: 26px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          <span>Expand Preview</span>
+        </button>
+      </div>
+      <div class="preview-container"><iframe class="preview-frame" id="frame" title="Live Preview" loading="eager"></iframe></div>
       <div class="console-panel" id="console-panel">
         <div class="console-header" id="console-toggle"><div class="console-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg> Console Output <span class="console-badge" id="console-count">0</span></div><button id="btn-console-clear" style="padding:3px 9px;font-size:10px;">Clear</button></div>
         <div class="console-logs" id="console-logs"><div style="color:var(--text-muted);font-style:italic;">Console kosong. Log dari iframe akan tampil di sini.</div></div>
@@ -210,7 +329,167 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
     var sampleCode = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>Interactive Demo - Fixed<\/title>\n<style>\n  body{font-family:system-ui,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;margin:0;padding:20px}\n  .card{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px;width:380px;max-width:90vw;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.4);transition:.3s}\n  .card:hover{transform:translateY(-6px);border-color:#3b82f6;box-shadow:0 25px 50px rgba(59,130,246,.18)}\n  h1{font-size:24px;margin-bottom:10px;color:#60a5fa}\n  p{color:#94a3b8;font-size:13px;line-height:1.6;margin-bottom:22px}\n  .btn-action{background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:13px;box-shadow:0 4px 12px rgba(59,130,246,.32)}\n  .btn-action:hover{background:#2563eb;transform:scale(1.02)}\n  .counter{margin-top:16px;font-size:20px;font-weight:700;color:#10b981}\n<\/style>\n<\/head>\n<body>\n  <div class="card" id="demo-card">\n    <h1>Fixed Demo OK<\/h1>\n    <p>Klik tombol, buka console, klik elemen card untuk inspect CSS & JS. Ini sudah fix freeze & Live Server ready.<\/p>\n    <button class="btn-action" onclick="incrementCounter()">Click to Log<\/button>\n    <div class="counter" id="counter-value">0 clicks<\/div>\n  <\/div>\n  <script>\n    var clicks=0;\n    console.log("Console init - Fixed version works! Live Server OK");\n    function incrementCounter(){\n      clicks++;\n      document.getElementById("counter-value").innerText = clicks + " clicks";\n      console.log("Clicked! count=" + clicks);\n      if(clicks===3) console.warn("Warn: 3 clicks");\n      if(clicks===5) console.error("Error demo at 5 clicks");\n    }\n  <\/script>\n<\/body>\n<\/html>';
 
     // console capture - built with \x3C to avoid outer parser breaking - FIXED no freeze
-    var consoleCaptureScript = '\x3Cscript>(function(){var l=console.log,w=console.warn,e=console.error,i=console.info;function s(t,a){try{window.parent.postMessage({type:"iframe-console",method:t,arguments:Array.from(a).map(function(x){if(x===null)return"null";if(x===void 0)return"undefined";if(x instanceof Error)return x.name+": "+x.message+"\\n"+x.stack;try{if(typeof x==="object")return JSON.stringify(x,null,2);}catch(e){}return String(x);})},"*");}catch(e){}}console.log=function(){s("log",arguments);l.apply(console,arguments);};console.warn=function(){s("warn",arguments);w.apply(console,arguments);};console.error=function(){s("error",arguments);e.apply(console,arguments);};console.info=function(){s("info",arguments);i.apply(console,arguments);};window.onerror=function(m,src,ln,col,err){s("error",[m+" (line "+ln+":"+col+")"]);return false;};window.addEventListener("unhandledrejection",function(ev){s("error",["Unhandled: "+(ev.reason&&ev.reason.message?ev.reason.message:ev.reason)]);});})();\x3C/script>\x3Cstyle>.editable-element-highlight{outline:2px dashed rgba(59,130,246,.65)!important;outline-offset:2px!important;cursor:pointer!important}.editable-element-highlight:hover{outline:2px solid #3b82f6!important;background:rgba(59,130,246,.06)!important}.editable-element-selected{outline:2px solid #3b82f6!important;outline-offset:2px!important;background:rgba(59,130,246,.12)!important}\x3C/style>';
+    var consoleCaptureScript = '\x3Cscript>(function(){\n' +
+      '  // 1. Polyfill storage if blocked (common in sandboxed srcdoc iframes)\n' +
+      '  try {\n' +
+      '    var test = window.localStorage;\n' +
+      '  } catch (e) {\n' +
+      '    (function() {\n' +
+      '      var parentStorage = null;\n' +
+      '      try { if (window.parent && window.parent.localStorage) parentStorage = window.parent.localStorage; } catch(ex) {}\n' +
+      '      var parentSessionStorage = null;\n' +
+      '      try { if (window.parent && window.parent.sessionStorage) parentSessionStorage = window.parent.sessionStorage; } catch(ex) {}\n' +
+      '\n' +
+      '      function createStoragePolyfill(parentStore, prefix) {\n' +
+      '        var storage = {};\n' +
+      '        return {\n' +
+      '          getItem: function(key) {\n' +
+      '            if (parentStore) {\n' +
+      '              try { return parentStore.getItem(prefix + key); } catch(ex) {}\n' +
+      '            }\n' +
+      '            return key in storage ? storage[key] : null;\n' +
+      '          },\n' +
+      '          setItem: function(key, value) {\n' +
+      '            if (parentStore) {\n' +
+      '              try { parentStore.setItem(prefix + key, String(value)); return; } catch(ex) {}\n' +
+      '            }\n' +
+      '            storage[key] = String(value);\n' +
+      '          },\n' +
+      '          removeItem: function(key) {\n' +
+      '            if (parentStore) {\n' +
+      '              try { parentStore.removeItem(prefix + key); return; } catch(ex) {}\n' +
+      '            }\n' +
+      '            delete storage[key];\n' +
+      '          },\n' +
+      '          clear: function() {\n' +
+      '            if (parentStore) {\n' +
+      '              try {\n' +
+      '                for (var i = parentStore.length - 1; i >= 0; i--) {\n' +
+      '                  var k = parentStore.key(i);\n' +
+      '                  if (k && k.indexOf(prefix) === 0) parentStore.removeItem(k);\n' +
+      '                }\n' +
+      '                return;\n' +
+      '              } catch(ex) {}\n' +
+      '            }\n' +
+      '            storage = {};\n' +
+      '          },\n' +
+      '          key: function(i) {\n' +
+      '            if (parentStore) {\n' +
+      '              try {\n' +
+      '                var keys = [];\n' +
+      '                for (var j = 0; j < parentStore.length; j++) {\n' +
+      '                  var k = parentStore.key(j);\n' +
+      '                  if (k && k.indexOf(prefix) === 0) keys.push(k.substring(prefix.length));\n' +
+      '                }\n' +
+      '                return keys[i] || null;\n' +
+      '              } catch(ex) {}\n' +
+      '            }\n' +
+      '            return Object.keys(storage)[i] || null;\n' +
+      '          },\n' +
+      '          get length() {\n' +
+      '            if (parentStore) {\n' +
+      '              try {\n' +
+      '                var count = 0;\n' +
+      '                for (var j = 0; j < parentStore.length; j++) {\n' +
+      '                  var k = parentStore.key(j);\n' +
+      '                  if (k && k.indexOf(prefix) === 0) count++;\n' +
+      '                }\n' +
+      '                return count;\n' +
+      '              } catch(ex) {}\n' +
+      '            }\n' +
+      '            return Object.keys(storage).length;\n' +
+      '          }\n' +
+      '        };\n' +
+      '      }\n' +
+      '\n' +
+      '      try {\n' +
+      '        Object.defineProperty(window, "localStorage", { value: createStoragePolyfill(parentStorage, "preview_local_"), configurable: true, enumerable: true, writable: true });\n' +
+      '        Object.defineProperty(window, "sessionStorage", { value: createStoragePolyfill(parentSessionStorage, "preview_session_"), configurable: true, enumerable: true, writable: true });\n' +
+      '      } catch(err) {\n' +
+      '        console.warn("Storage polyfill error:", err);\n' +
+      '      }\n' +
+      '    })();\n' +
+      '  }\n' +
+      '\n' +
+      '  // 2. Proxy google.script.run for Live Server sync\n' +
+      '  if (typeof google === "undefined") {\n' +
+      '    window.google = {\n' +
+      '      script: {\n' +
+      '        run: new Proxy({}, {\n' +
+      '          get: function (target, prop) {\n' +
+      '            if (prop === "withSuccessHandler") {\n' +
+      '              return function (cb) { target._scb = cb; return window.google.script.run; };\n' +
+      '            }\n' +
+      '            if (prop === "withFailureHandler") {\n' +
+      '              return function (cb) { target._fcb = cb; return window.google.script.run; };\n' +
+      '            }\n' +
+      '            return function () {\n' +
+      '              var args = Array.prototype.slice.call(arguments);\n' +
+      '              var scb = target._scb;\n' +
+      '              var fcb = target._fcb;\n' +
+      '              target._scb = null;\n' +
+      '              target._fcb = null;\n' +
+      '              var gasUrl = "";\n' +
+      '              try {\n' +
+      '                gasUrl = localStorage.getItem("PICA_GAS_URL") || "";\n' +
+      '              } catch(e) {}\n' +
+      '              if (!gasUrl) {\n' +
+      '                console.warn("google.script.run: GAS_URL is not configured.");\n' +
+      '                if (fcb) fcb(new Error("GAS_URL is not configured."));\n' +
+      '                return;\n' +
+      '              }\n' +
+      '              fetch(gasUrl, {\n' +
+      '                method: "POST",\n' +
+      '                headers: { "Content-Type": "text/plain;charset=utf-8" },\n' +
+      '                body: JSON.stringify({ functionName: prop, parameters: args })\n' +
+      '              })\n' +
+      '              .then(function(r) { return r.json(); })\n' +
+      '              .then(function(res) {\n' +
+      '                if (res.error && fcb) fcb(res.error);\n' +
+      '                else if (scb) scb(res.data !== undefined ? res.data : res);\n' +
+      '              })\n' +
+      '              .catch(function(err) {\n' +
+      '                console.error("Fetch API Error in proxy:", err);\n' +
+      '                if (fcb) fcb(err);\n' +
+      '              });\n' +
+      '            };\n' +
+      '          }\n' +
+      '        })\n' +
+      '      }\n' +
+      '    };\n' +
+      '  }\n' +
+      '\n' +
+      '  // 3. Existing console log forwarding\n' +
+      '  var l=console.log,w=console.warn,e=console.error,i=console.info;\n' +
+      '  function s(t,a){\n' +
+      '    try{\n' +
+      '      window.parent.postMessage({\n' +
+      '        type:"iframe-console",\n' +
+      '        method:t,\n' +
+      '        arguments:Array.from(a).map(function(x){\n' +
+      '          if(x===null)return"null";\n' +
+      '          if(x===void 0)return"undefined";\n' +
+      '          if(x instanceof Error)return x.name+": "+x.message+"\\n"+x.stack;\n' +
+      '          try{if(typeof x==="object")return JSON.stringify(x,null,2);}catch(e){}\n' +
+      '          return String(x);\n' +
+      '        })\n' +
+      '      },"*");\n' +
+      '    }catch(e){}\n' +
+      '  }\n' +
+      '  console.log=function(){s("log",arguments);l.apply(console,arguments);};\n' +
+      '  console.warn=function(){s("warn",arguments);w.apply(console,arguments);};\n' +
+      '  console.error=function(){s("error",arguments);e.apply(console,arguments);};\n' +
+      '  console.info=function(){s("info",arguments);i.apply(console,arguments);};\n' +
+      '  window.onerror=function(m,src,ln,col,err){s("error",[m+" (line "+ln+":"+col+")"]);return false;};\n' +
+      '  window.addEventListener("unhandledrejection",function(ev){\n' +
+      '    s("error",["Unhandled: "+(ev.reason&&ev.reason.message?ev.reason.message:ev.reason)]);\n' +
+      '  });\n' +
+      '  window.addEventListener("keydown",function(e){\n' +
+      '    if(e.key==="Escape"){\n' +
+      '      try{ window.parent.postMessage({type:"iframe-escape"},"*"); }catch(ex){}\n' +
+      '    }\n' +
+      '  });\n' +
+      '})();\x3C/script>\x3Cstyle>body:not(.interactive-mode) .editable-element-highlight{outline:2px dashed rgba(59,130,246,.65)!important;outline-offset:2px!important;cursor:pointer!important}body:not(.interactive-mode) .editable-element-highlight:hover{outline:2px solid #3b82f6!important;background:rgba(59,130,246,.06)!important}body:not(.interactive-mode) .editable-element-selected{outline:2px solid #3b82f6!important;outline-offset:2px!important;background:rgba(59,130,246,.12)!important}\x3C/style>';
 
     function instrumentHTML(html){
       try{
@@ -332,12 +611,18 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
             if(['SCRIPT','STYLE','NOSCRIPT'].indexOf(tg)===-1){
               el.classList.add('editable-element-highlight');
               el.addEventListener('click', function(ev){
+                if (doc.body.classList.contains('interactive-mode')) {
+                  return;
+                }
                 ev.preventDefault(); ev.stopPropagation();
                 inspectElement(el);
               });
               cnt++;
             }
           });
+          if (document.querySelector('.layout').classList.contains('preview-max')) {
+            doc.body.classList.add('interactive-mode');
+          }
           if(countEl) countEl.textContent = cnt + ' interactive element' + (cnt!==1?'s':'');
           statusDot.className='status-dot';
           statusText.textContent='Live Preview Ready';
@@ -616,6 +901,244 @@ textarea#source{flex:1;background:transparent;border:none;color:#cbd5e1;font-fam
       try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
       toast('Workspace cleared');
     });
+
+    // Sidebar Color Customizer
+    (function(){
+      var COLOR_STORAGE_KEY = 'premium-html-editor-sidebar-color';
+      var colorDots = document.querySelectorAll('.color-dot');
+      var customColorPicker = document.getElementById('sidebar-custom-color');
+      var customColorIndicator = document.getElementById('sidebar-custom-indicator');
+
+      var presets = {
+        default: { panel: '#111827', sidebar: '#090d16', header: '#0f172a' },
+        red: { panel: '#3b0c11', sidebar: '#1d070a', header: '#29090c' },
+        indigo: { panel: '#1e1b4b', sidebar: '#0f0d30', header: '#15133c' },
+        emerald: { panel: '#064e3b', sidebar: '#022c22', header: '#043e2f' }
+      };
+
+      function adjustColorBrightness(hex, percent) {
+        hex = hex.replace(/^\s*#|\s*$/g, '');
+        if (hex.length === 3) {
+          hex = hex.replace(/(.)/g, '$1$1');
+        }
+        var r = parseInt(hex.substr(0, 2), 16),
+            g = parseInt(hex.substr(2, 2), 16),
+            b = parseInt(hex.substr(4, 2), 16);
+
+        var factor = 1 + (percent / 100);
+        r = Math.max(0, Math.min(255, Math.round(r * factor)));
+        g = Math.max(0, Math.min(255, Math.round(g * factor)));
+        b = Math.max(0, Math.min(255, Math.round(b * factor)));
+
+        var rHex = r.toString(16).padStart(2, '0');
+        var gHex = g.toString(16).padStart(2, '0');
+        var bHex = b.toString(16).padStart(2, '0');
+        return '#' + rHex + gHex + bHex;
+      }
+
+      function applyTheme(colorKey, customVal) {
+        colorDots.forEach(function(dot) { dot.classList.remove('active'); });
+        if (customColorIndicator) {
+          customColorIndicator.style.borderColor = 'rgba(255,255,255,0.2)';
+          customColorIndicator.style.boxShadow = 'none';
+        }
+
+        var colors;
+        if (colorKey === 'custom') {
+          var val = customVal || '#111827';
+          colors = {
+            panel: val,
+            sidebar: adjustColorBrightness(val, -50),
+            header: adjustColorBrightness(val, -20)
+          };
+          if (customColorIndicator) {
+            customColorIndicator.style.background = val;
+            customColorIndicator.style.borderColor = '#fff';
+            customColorIndicator.style.boxShadow = '0 0 8px ' + val;
+          }
+        } else {
+          colors = presets[colorKey] || presets.default;
+          var dot = document.querySelector('.color-dot[data-color="' + colorKey + '"]');
+          if (dot) dot.classList.add('active');
+          if (customColorIndicator) {
+            customColorIndicator.style.background = 'linear-gradient(45deg, #ff007f, #00f0ff)';
+          }
+        }
+
+        document.documentElement.style.setProperty('--bg-panel', colors.panel);
+        document.documentElement.style.setProperty('--bg-sidebar', colors.sidebar);
+        document.documentElement.style.setProperty('--bg-header', colors.header);
+
+        try {
+          localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify({ key: colorKey, value: customVal }));
+        } catch (e) {}
+      }
+
+      colorDots.forEach(function(dot) {
+        dot.addEventListener('click', function() {
+          var colorKey = dot.getAttribute('data-color');
+          applyTheme(colorKey);
+        });
+      });
+
+      if (customColorPicker) {
+        var onCustomChange = function() {
+          applyTheme('custom', customColorPicker.value);
+        };
+        customColorPicker.addEventListener('input', onCustomChange);
+        customColorPicker.addEventListener('change', onCustomChange);
+      }
+
+      try {
+        var savedColor = localStorage.getItem(COLOR_STORAGE_KEY);
+        if (savedColor) {
+          var parsed = JSON.parse(savedColor);
+          if (parsed.key === 'custom') {
+            if (customColorPicker) customColorPicker.value = parsed.value || '#111827';
+            applyTheme('custom', parsed.value);
+          } else {
+            applyTheme(parsed.key);
+          }
+        } else {
+          applyTheme('default');
+        }
+      } catch (e) {
+        applyTheme('default');
+      }
+    })();
+
+    // Layout State toggles
+    (function(){
+      var app = document.querySelector('.app');
+      var layout = document.querySelector('.layout');
+      var btnMaxEditor = document.getElementById('btn-maximize-editor');
+      var btnMaxPreview = document.getElementById('btn-maximize-preview');
+      var btnRestoreFloating = document.getElementById('btn-restore-floating');
+      
+      var maximizeIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+      var minimizeIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="10" y1="14" x2="3" y2="21"></line></svg>';
+
+      function setIframeInteractiveMode(enabled) {
+        try {
+          var frame = document.getElementById('frame');
+          if (!frame) return;
+          var doc = frame.contentDocument || frame.contentWindow.document;
+          if (doc && doc.body) {
+            if (enabled) {
+              doc.body.classList.add('interactive-mode');
+              doc.querySelectorAll('.editable-element-selected').forEach(function(el){
+                el.classList.remove('editable-element-selected');
+              });
+              var noSel = document.getElementById('no-selection');
+              var det = document.getElementById('inspector-details');
+              if (noSel) noSel.style.display = 'block';
+              if (det) det.style.display = 'none';
+            } else {
+              doc.body.classList.remove('interactive-mode');
+            }
+          }
+        } catch(e) {}
+      }
+
+      function restoreLayout() {
+        layout.classList.remove('editor-max');
+        layout.classList.remove('preview-max');
+        if (app) app.classList.remove('preview-fullscreen');
+        if (btnRestoreFloating) btnRestoreFloating.style.display = 'none';
+        updateButtons('split');
+        setIframeInteractiveMode(false);
+      }
+
+      function maximizeEditor() {
+        layout.classList.remove('preview-max');
+        if (app) app.classList.remove('preview-fullscreen');
+        if (btnRestoreFloating) btnRestoreFloating.style.display = 'none';
+        layout.classList.add('editor-max');
+        updateButtons('editor-max');
+        setIframeInteractiveMode(false);
+      }
+
+      function maximizePreview() {
+        layout.classList.remove('editor-max');
+        layout.classList.add('preview-max');
+        if (app) app.classList.add('preview-fullscreen');
+        if (btnRestoreFloating) btnRestoreFloating.style.display = 'inline-flex';
+        updateButtons('preview-max');
+        setIframeInteractiveMode(true);
+      }
+
+      function updateButtons(state) {
+        if (state === 'editor-max') {
+          if (btnMaxEditor) {
+            btnMaxEditor.innerHTML = minimizeIcon;
+            btnMaxEditor.title = "Restore Layout";
+          }
+          if (btnMaxPreview) {
+            btnMaxPreview.querySelector('span').textContent = "Expand Preview";
+            btnMaxPreview.querySelector('svg').outerHTML = maximizeIcon;
+            btnMaxPreview.title = "Maximize Preview";
+          }
+        } else if (state === 'preview-max') {
+          if (btnMaxEditor) {
+            btnMaxEditor.innerHTML = maximizeIcon;
+            btnMaxEditor.title = "Maximize Editor";
+          }
+          if (btnMaxPreview) {
+            btnMaxPreview.querySelector('span').textContent = "Restore Layout";
+            var svgEl = btnMaxPreview.querySelector('svg');
+            if (svgEl) svgEl.outerHTML = minimizeIcon;
+            btnMaxPreview.title = "Restore Layout";
+          }
+        } else {
+          if (btnMaxEditor) {
+            btnMaxEditor.innerHTML = maximizeIcon;
+            btnMaxEditor.title = "Maximize Editor";
+          }
+          if (btnMaxPreview) {
+            btnMaxPreview.querySelector('span').textContent = "Expand Preview";
+            var svgEl = btnMaxPreview.querySelector('svg');
+            if (svgEl) svgEl.outerHTML = maximizeIcon;
+            btnMaxPreview.title = "Maximize Preview";
+          }
+        }
+      }
+
+      if (btnMaxEditor) {
+        btnMaxEditor.addEventListener('click', function(){
+          if (layout.classList.contains('editor-max')) {
+            restoreLayout();
+          } else {
+            maximizeEditor();
+          }
+        });
+      }
+
+      if (btnMaxPreview) {
+        btnMaxPreview.addEventListener('click', function(){
+          if (layout.classList.contains('preview-max')) {
+            restoreLayout();
+          } else {
+            maximizePreview();
+          }
+        });
+      }
+
+      if (btnRestoreFloating) {
+        btnRestoreFloating.addEventListener('click', restoreLayout);
+      }
+
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && layout.classList.contains('preview-max')){
+          restoreLayout();
+        }
+      });
+
+      window.addEventListener('message', function(ev){
+        if (ev.data && ev.data.type === 'iframe-escape') {
+          restoreLayout();
+        }
+      });
+    })();
 
     // init
     try{
